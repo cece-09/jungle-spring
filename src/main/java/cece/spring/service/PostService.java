@@ -37,7 +37,7 @@ public class PostService {
      * @return save post in repository and return response
      */
     @Transactional
-    public ResponseEntity<ApiResponse<Post>> createPost(PostCreateReqDto postRequestDto, String token) {
+    public ResponseEntity<ApiResponse> createPost(PostCreateReqDto postRequestDto, String token) {
         // Validate member first.
         Long memberId = jwtUtils.getUserIdFromToken(token);
         Member member = memberRepository.findById(memberId)
@@ -48,9 +48,7 @@ public class PostService {
         post.setMember(member);
 
         postRepository.save(post);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ApiResponse<>(post, "ok", HttpStatus.CREATED.value())
-        );
+        return ApiResponse.success(post);
     }
 
     /**
@@ -60,7 +58,7 @@ public class PostService {
      * @return ResponseEntity of GetPostDto ApiResponse
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PostListResDto>> getPosts(int page, int size) {
+    public ResponseEntity<ApiResponse> getPosts(int page, int size) {
         // Get page data from request params.
         long totalCount = postRepository.count();
         long totalPage = totalCount / size;
@@ -80,9 +78,7 @@ public class PostService {
             ));
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ApiResponse<>(getPostsDto, "ok", HttpStatus.CREATED.value())
-        );
+        return ApiResponse.success(getPostsDto);
     }
 
     @Transactional(readOnly = true)

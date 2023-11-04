@@ -1,5 +1,6 @@
 package cece.spring.controller;
 
+import cece.spring.dto.request.MemberReqDto;
 import cece.spring.dto.request.MemberSignupReqDto;
 import cece.spring.dto.response.MemberResDto;
 import cece.spring.response.ApiResponse;
@@ -22,21 +23,24 @@ public class MemberController {
 
     @GetMapping("/signup")
     public ModelAndView signupPage() {
+        /* Return signup.html */
         return new ModelAndView("signup");
     }
 
     @GetMapping("/login")
     public ModelAndView loginPage() {
+        /* Return login.html */
         return new ModelAndView("login");
     }
 
     /**
      * New user signup
+     * @param token admin auth token if role is "admin"
      * @param request username, password, role
      * @return ResponseEntity
      */
     @PostMapping("/api/signup")
-    public ResponseEntity<ApiResponse<MemberResDto>> signup(
+    public ResponseEntity<ApiResponse> signup(
             @RequestHeader(name = "Authorization", required = false) String token,
             @RequestBody @Valid MemberSignupReqDto request) {
 
@@ -44,14 +48,14 @@ public class MemberController {
     }
 
     /**
-     * Log in a user
-     * @param signupDto username, password
-     * @return ResponseEntity
+     * User login
+     * @param request username, password
+     * @return ResponseEntity with JWT token.
      */
-//    @PostMapping("/api/login")
-//    public String login(@RequestBody MemberReqDto signupDto) {
-//        log.debug("login request" + signupDto);
-//        memberService.signup(signupDto);
-//        return "redirect:/";
-//    }
+    @PostMapping("/api/login")
+    public ResponseEntity<ApiResponse> login(
+            @RequestBody MemberReqDto request) {
+
+        return memberService.login(request);
+    }
 }

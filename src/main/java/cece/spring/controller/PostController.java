@@ -26,13 +26,13 @@ public class PostController {
     }
 
     @PostMapping("/api/posts")
-    public ResponseEntity<ApiResponse<Post>> createPost(@RequestBody PostCreateReqDto requestDto,
+    public ResponseEntity<ApiResponse> createPost(@RequestBody PostCreateReqDto requestDto,
                            @RequestHeader(name = "Authorization") String token) {
         return postService.createPost(requestDto, token);
     }
 
     @GetMapping("/api/posts/list")
-    public ResponseEntity<ApiResponse<PostListResDto>> getPosts(@RequestParam(value = "page", required = true) int page,
+    public ResponseEntity<ApiResponse> getPosts(@RequestParam(value = "page", required = true) int page,
                                                                 @RequestParam(value = "size", required = true) int size) {
 //        HttpHeaders headers = new HttpHeaders();
 //        headers.add("Content-Type", "application/json");

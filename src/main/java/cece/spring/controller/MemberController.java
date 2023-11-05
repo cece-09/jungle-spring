@@ -1,14 +1,11 @@
 package cece.spring.controller;
 
-import cece.spring.dto.request.MemberReqDto;
-import cece.spring.dto.request.MemberSignupReqDto;
-import cece.spring.dto.response.MemberResDto;
-import cece.spring.response.ApiResponse;
+import cece.spring.dto.request.UserLoginRequest;
+import cece.spring.dto.request.UserSignupRequest;
+import cece.spring.dto.response.ApiResponse;
 import cece.spring.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,7 +16,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
-    private final Logger log = LoggerFactory.getLogger(getClass().getName());
 
     @GetMapping("/signup")
     public ModelAndView signupPage() {
@@ -42,7 +38,7 @@ public class MemberController {
     @PostMapping("/api/signup")
     public ResponseEntity<ApiResponse> signup(
             @RequestHeader(name = "Authorization", required = false) String token,
-            @RequestBody @Valid MemberSignupReqDto request) {
+            @RequestBody @Valid UserSignupRequest request) {
 
         return memberService.signup(Optional.ofNullable(token), request);
     }
@@ -54,7 +50,7 @@ public class MemberController {
      */
     @PostMapping("/api/login")
     public ResponseEntity<ApiResponse> login(
-            @RequestBody MemberReqDto request) {
+            @RequestBody UserLoginRequest request) {
 
         return memberService.login(request);
     }

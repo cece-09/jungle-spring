@@ -29,8 +29,11 @@ public class Member {
     @Column(nullable = false)
     private MemberRole role;
 
-    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
 
     public Member(String name, String password, MemberRole role) {
         this.name = name;
@@ -41,9 +44,11 @@ public class Member {
     public void addPost(Post post) {
         this.posts.add(post);
     }
-
-    public void deletePost(Post post) {
-        this.posts.remove(post);
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+    }
+    public void removeComment(Comment comment) {
+        this.comments.remove(comment);
     }
 }
 

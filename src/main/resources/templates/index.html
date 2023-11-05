@@ -5,8 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var apiUrl = 'http://localhost:8080/api/posts';
+
+            // 폼 제출 이벤트 핸들러
+            $('#pagination-form').on('submit', function(event) {
+                event.preventDefault(); // 폼의 기본 제출 동작 방지
+
+                // 입력된 페이지와 사이즈 값을 가져옴
+                var page = $('#page').val();
+                var size = $('#size').val();
+
+                // AJAX 요청
+                $.ajax({
+                    url: apiUrl,
+                    type: 'GET',
+                    data: {
+                        page: page,
+                        size: size
+                    },
+                    success: function(response) {
+                        // 응답 처리
+                        console.log("Data received:", response);
+
+                        var posts = response.body.data; // 응답으로부터 게시글 데이터 추출
+
+                        // 게시글 데이터를 HTML로 변환하여 표시
+                        var html = '';
+                        $.each(posts, function(index, post) {
+                            html += '<div class="post">';
+                            html += '<h2>' + post.title + '</h2>';
+                            html += '<p>Author: ' + post.author + '</p>';
+                            html += '<p>' + post.content + '</p>';
+                            html += '<p>Posted on: ' + post.createdAt + '</p>';
+                            html += '</div>';
+                        });
+
+                        // 게시글 목록을 페이지에 추가
+                        $('#post-list').html(html);
+                    },
+                    error: function(xhr, status, error) {
+                        // 오류 처리
+                        console.error("An error occurred:", xhr, status, error);
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <div>Home Page</div>
+
+    <form id="pagination-form">
+        <label for="page">Page:</label>
+        <input type="number" id="page" name="page" min="1" value="1">
+
+        <label for="size">Size:</label>
+        <input type="number" id="size" name="size" min="1" value="10">
+
+        <input type="submit" value="Load Posts">
+    </form>
+
+    <div id="post-list"></div>
 </body>
 </html>

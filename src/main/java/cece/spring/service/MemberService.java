@@ -1,13 +1,12 @@
 package cece.spring.service;
 
-import cece.spring.dto.request.MemberReqDto;
-import cece.spring.dto.request.MemberSignupReqDto;
-import cece.spring.dto.response.MemberResDto;
+import cece.spring.dto.request.UserLoginRequest;
+import cece.spring.dto.request.UserSignupRequest;
 import cece.spring.entity.Member;
 import cece.spring.entity.MemberRole;
-import cece.spring.utils.JwtUtils;
+import cece.spring.utils.AuthProvider;
 import cece.spring.repository.MemberRepository;
-import cece.spring.response.ApiResponse;
+import cece.spring.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +21,19 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder encoder;
-    private final JwtUtils jwtUtils;
-    private final String ADMIN_TOKEN = "112233";
+    private final AuthProvider authProvider;
+
+    /* Admin authentication token. */
+    private static final String ADMIN_TOKEN = "112233";
+    private static final String REGEX_PASSWORD = "(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,15}";
+
+    /* Error message strings. */
+    private static final String INVALID_PASSWORD = "비밀번호는 8자 이상 15자 이하 대/소문자, 숫자, 특수문자를 포함해 입력하세요.";
+    private static final String ADMIN_AUTH_ERROR = "관리자 인증에 실패했습니다.";
+    private static final String INVALID_USERNAME = "이미 가입된 회원입니다.";
+    private static final String USER_NOT_FOUND = "가입된 회원 정보가 없습니다.";
+    private static final String PASSWORD_ERROR = "비밀번호가 일치하지 않습니다.";
+
 
     /**
      * Create a member based on:
@@ -34,14 +44,14 @@ public class MemberService {
     @Transactional
     public ResponseEntity<ApiResponse> signup(
             Optional<String> isToken,
-            MemberSignupReqDto request) {
+            UserSignupRequest request) {
         /* Extract user info and encrypt. */
         String username = request.getUsername();
 
         /* Validate password first. */
         String password = request.getPassword();
-        if (!password.matches("(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,15}")) {
-            return ApiResponse.error("비밀번호는 8자 이상 15자 이하 대소문자, 숫자, 특수문자를 포함해 입력");
+        if (!password.matches(REGEX_PASSWORD)) {
+            return ApiResponse.error(INVALID_PASSWORD);
         }
 
         String encodedPassword = encoder.encode(request.getPassword());
@@ -55,26 +65,26 @@ public class MemberService {
 
             /* If token is empty. */
             if (isToken.isEmpty()) {
-                return ApiResponse.error("관리자 인증 실패");
+                return ApiResponse.error(ADMIN_AUTH_ERROR);
             }
 
             /* If token is not valid. */
             if (!isToken.get().equals(ADMIN_TOKEN)) {
-                return ApiResponse.error("관리자 인증 실패");
+                return ApiResponse.error(ADMIN_AUTH_ERROR);
             }
         }
 
         /* Handle non-unique username. */
         Optional<Member> found = memberRepository.findMemberByName(username);
         if (found.isPresent()) {
-            return ApiResponse.error("이미 가입된 회원");
+            return ApiResponse.error(INVALID_USERNAME);
         }
 
         /* Save to database. */
         Member member = memberRepository.save(new Member(username, encodedPassword, role));
 
         /* Build Response and return. */
-        return ApiResponse.success(new MemberResDto(member.getId()));
+        return ApiResponse.success(member.getId());
     }
 
     /**
@@ -84,7 +94,7 @@ public class MemberService {
      * @return Response with JWT token
      */
     @Transactional
-    public ResponseEntity<ApiResponse> login(MemberReqDto request) {
+    public ResponseEntity<ApiResponse> login(UserLoginRequest request) {
         /* Extract user info from request. */
         String username = request.getUsername();
         String password = request.getPassword();
@@ -92,23 +102,18 @@ public class MemberService {
         /* Find user by name in db. */
         Optional<Member> isMember = memberRepository.findMemberByName(username);
         if (isMember.isEmpty()) {
-            return ApiResponse.error("존재하지 않는 유저");
+            return ApiResponse.error(USER_NOT_FOUND);
         }
 
         /* Validate password. */
         Member member = isMember.get();
         if (!encoder.matches(password, member.getPassword())) {
-            return ApiResponse.error("비밀번호 오류");
+            return ApiResponse.error(PASSWORD_ERROR);
         }
 
         /* Create JWT token and return. */
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", jwtUtils.createToken(member));
-        return ApiResponse.success(new MemberResDto(member.getId()), headers);
-    }
-
-    @Transactional
-    public Member logout() {
-        return null;
+        headers.set("Authorization", authProvider.createToken(member));
+        return ApiResponse.success(member.getId(), headers);
     }
 }

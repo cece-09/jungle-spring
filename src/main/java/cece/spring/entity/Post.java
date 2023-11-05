@@ -1,10 +1,13 @@
 package cece.spring.entity;
 
 
-import cece.spring.dto.request.PostCreateReqDto;
+import cece.spring.dto.request.PostCreateRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -18,35 +21,39 @@ public class Post extends Timestamped{
     private String title;
 
     @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false)
-    private String contents;
+    private String content;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
-    public Post(Long id, String title, String username, String password, String contents) {
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    public Post(Long id, String title, String username, String contents) {
         this.title = title;
-        this.password = password;
-        this.contents = contents;
+        this.content = contents;
     }
 
-    public Post(PostCreateReqDto postRequestDto) {
-        this.title = postRequestDto.getTitle();
-        this.contents = postRequestDto.getContents();
-        this.password = postRequestDto.getPassword();
+    public Post(PostCreateRequest request) {
+        this.title = request.getTitle();
+        this.content = request.getContent();
     }
 
-    public void update(PostCreateReqDto postRequestDto) {
-        this.title = postRequestDto.getTitle();
-        this.contents = postRequestDto.getContents();
-        this.password = postRequestDto.getPassword();
+    public void update(PostCreateRequest request) {
+        this.title = request.getTitle();
+        this.content = request.getContent();
     }
 
     public void setMember(Member member) {
         this.member = member;
         member.addPost(this);
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+    }
+    public void removeComment(Comment comment) {
+        this.comments.remove(comment);
     }
 }

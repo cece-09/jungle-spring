@@ -1,0 +1,54 @@
+@startuml
+actor user
+actor admin
+
+left to right direction
+rectangle System {
+    usecase "전체 게시글 목록 조회" as getPosts
+    usecase "선택한 게시글 조회" as getPost
+    usecase "게시글 목록 페이지 조회"  as filterPosts
+
+    usecase "게시글 작성"       as createPost
+    usecase "선택한 게시글 수정" as updatePost
+    usecase "선택한 게시글 삭제" as deletePost
+
+    usecase "댓글 작성" as createComment
+    usecase "댓글 수정" as updateComment
+    usecase "댓글 삭제" as deleteComment
+
+    usecase "로그인" as login
+    usecase "회원 가입" as signup
+
+
+    createPost ..> login : include
+    updatePost ..> login : include
+    deletePost ..> login : include
+
+    createComment ..> login : include
+    updateComment ..> login : include
+    deleteComment ..> login : include
+
+    getPosts <.. filterPosts : extend
+
+    user --> getPosts
+    user --> getPost
+    user --> createPost
+    user --> updatePost
+    user --> deletePost
+    user --> createComment
+    user --> updateComment
+    user --> deleteComment
+    user --> signup
+
+'    getPosts <-- admin
+'    getPost <-- admin
+'    createPost <-- admin
+'    updatePost <-- admin
+'    deletePost <-- admin
+'    createComment <-- admin
+'    updateComment <-- admin
+'    deleteComment <-- admin
+'    login <-- admin
+'    signup <-- admin
+}
+@enduml

@@ -1,17 +1,17 @@
-package cece.spring.response;
+package cece.spring.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-@Getter
+@Getter @Setter
 @RequiredArgsConstructor
 public class ApiResponse {
     private final Object body;
-
     private static final HttpHeaders DEFAULT_HEADERS;
 
     static {

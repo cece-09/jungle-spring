@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class MemberSignupReqDto extends MemberReqDto {
-    private String role;
+public class PostCreateRequest {
+    private String title;
+    private String content;
 }

@@ -1,14 +1,10 @@
 package cece.spring.controller;
 
 
-import cece.spring.dto.request.PostCreateReqDto;
-import cece.spring.dto.response.PostListResDto;
-import cece.spring.entity.Post;
-import cece.spring.response.ApiResponse;
+import cece.spring.dto.request.PostCreateRequest;
+import cece.spring.dto.response.ApiResponse;
 import cece.spring.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -17,8 +13,6 @@ import org.springframework.web.servlet.ModelAndView;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
-    private final Logger log = LoggerFactory.getLogger(getClass().getName());
-
 
     @GetMapping("/")
     public ModelAndView home() {
@@ -26,31 +20,61 @@ public class PostController {
     }
 
     @PostMapping("/api/posts")
-    public ResponseEntity<ApiResponse> createPost(@RequestBody PostCreateReqDto requestDto,
-                           @RequestHeader(name = "Authorization") String token) {
-        return postService.createPost(requestDto, token);
+    public ResponseEntity<ApiResponse> createPost(
+            @RequestBody PostCreateRequest request,
+            @RequestHeader(name = "Authorization") String token) {
+        return postService.createPost(request, token);
     }
 
-    @GetMapping("/api/posts/list")
-    public ResponseEntity<ApiResponse> getPosts(@RequestParam(value = "page", required = true) int page,
-                                                                @RequestParam(value = "size", required = true) int size) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.add("Content-Type", "application/json");
+    @GetMapping("/api/posts")
+    public ResponseEntity<ApiResponse> getPosts(
+            @RequestParam(value = "page", required = true) int page,
+            @RequestParam(value = "size", required = true) int size) {
+
         return postService.getPosts(page, size);
     }
 
+    /**
+     * Get a certain post by id.
+     *
+     * @param id post id
+     * @return ResponseEntity of post
+     */
     @GetMapping("/api/posts/{id}")
-    public Post getPost(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> getPost(
+            @PathVariable Long id) {
+
         return postService.getPost(id);
     }
 
+    /**
+     * Update a certain post found by id.
+     *
+     * @param id      post id
+     * @param token   JWT token
+     * @param request update info
+     * @return ResponseEntity of updated post id
+     */
     @PutMapping("/api/posts/{id}")
-    public Long updatePost(@PathVariable Long id, @RequestBody PostCreateReqDto requestDto) {
-        return postService.updatePost(id, requestDto);
+    public ResponseEntity<ApiResponse> updatePost(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody PostCreateRequest request) {
+
+        return postService.updatePost(id, request, token);
     }
 
-//    @DeleteMapping("/api/posts/{id}")
-//    public Long deletePost(@PathVariable Long id) {
-//        return postService.deletePost(id);
-//    }
+    /**
+     * Delete a certain post found by id.
+     *
+     * @param id    post id
+     * @param token JWT token
+     * @return ResponseEntity of deleted post id
+     */
+    @DeleteMapping("/api/posts/{id}")
+    public ResponseEntity<ApiResponse> deletePost(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        return postService.deletePost(id, token);
+    }
 }

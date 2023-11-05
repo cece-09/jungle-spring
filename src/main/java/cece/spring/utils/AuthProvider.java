@@ -2,10 +2,10 @@ package cece.spring.utils;
 
 
 import cece.spring.entity.Member;
+import cece.spring.repository.MemberRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.util.Date;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtUtils {
+public class AuthProvider {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String AUTHORIZATION_KEY = "auth";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -30,30 +30,23 @@ public class JwtUtils {
     private String secretKey;
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+    private final MemberRepository memberRepository;
 
     /**
      * Constructor executed
      * after created and dependency injected
      */
-    @PostConstruct // 빈 생성, 의존성 주입 완료 후 실행됨
+    @PostConstruct
     public void init() {
         byte[] bytes = Base64.getDecoder().decode(secretKey);
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (!StringUtils.isEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
     /**
      * Create JWT token from Member
      *
-     * @param member
-     * @return
+     * @param member user
+     * @return token string
      */
     public String createToken(Member member) {
         Date date = new Date();
@@ -67,7 +60,26 @@ public class JwtUtils {
                         .compact();
     }
 
-    public boolean validateToken(String token) {
+    /**
+     * Resolve JWT token
+     *
+     * @param bearerToken token
+     * @return token string
+     */
+    private String resolveToken(String bearerToken) {
+        if (!StringUtils.isEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.split(" ")[1].trim();
+        }
+        return null;
+    }
+
+    /**
+     * Parse bearer token and validate token.
+     *
+     * @param token token with bearer prefix
+     * @return Token if token is valid else null.
+     */
+    private boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
@@ -84,16 +96,29 @@ public class JwtUtils {
     }
 
     /**
-     * Get user id from the token
-     * @param token
-     * @return
+     * Get member object from the token
+     *
+     * @param token token
+     * @return Member object
      */
-    public Long getUserIdFromToken(String token) {
+    private Member getUserFromToken(String token) {
         String subject = Jwts.parserBuilder().setSigningKey(key).build()
                 .parseClaimsJws(token).getBody()
                 .getSubject();
 
-        return Long.parseLong(subject);
+        Long id = Long.parseLong(subject);
+        return memberRepository.findByIdOrThrow(id, "사용자를 찾을 수 없습니다.");
     }
 
+    /**
+     *
+     */
+    public Member auth(String bearerToken) {
+        String token = resolveToken(bearerToken);
+        if (token == null || !validateToken(token)) {
+            throw new JwtException("유효한 토큰이 아닙니다.");
+        }
+
+        return getUserFromToken(token);
+    }
 }

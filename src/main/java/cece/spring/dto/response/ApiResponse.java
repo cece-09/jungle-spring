@@ -1,5 +1,6 @@
 package cece.spring.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -9,9 +10,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @Getter @Setter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ApiResponse {
-    private final Object body;
+    private Object data;
+    private String message;
     private static final HttpHeaders DEFAULT_HEADERS;
 
     static {
@@ -26,7 +28,7 @@ public class ApiResponse {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .headers(DEFAULT_HEADERS)
-                .body(new ApiResponse(data));
+                .body(new ApiResponse(data, "OK"));
     }
 
     /* Success method with headers */
@@ -35,7 +37,7 @@ public class ApiResponse {
                 .status(HttpStatus.OK)
                 .headers(DEFAULT_HEADERS)
                 .headers(headers)
-                .body(new ApiResponse(data));
+                .body(new ApiResponse(data, "OK"));
     }
 
     /* Success method with headers and status */
@@ -44,7 +46,7 @@ public class ApiResponse {
                 .status(status)
                 .headers(DEFAULT_HEADERS)
                 .headers(headers)
-                .body(new ApiResponse(data));
+                .body(new ApiResponse(data, "OK"));
     }
 
     /* Basic error method */
@@ -52,7 +54,7 @@ public class ApiResponse {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .headers(DEFAULT_HEADERS)
-                .body(new ApiResponse(message));
+                .body(new ApiResponse(null, message));
     }
 
     /* Error method with headers */
@@ -61,7 +63,7 @@ public class ApiResponse {
                 .status(HttpStatus.BAD_REQUEST)
                 .headers(DEFAULT_HEADERS)
                 .headers(headers)
-                .body(new ApiResponse(message));
+                .body(new ApiResponse(null, message));
     }
 
 
@@ -71,6 +73,6 @@ public class ApiResponse {
                 .status(status)
                 .headers(DEFAULT_HEADERS)
                 .headers(headers)
-                .body(new ApiResponse(message));
+                .body(new ApiResponse(null, message));
     }
 }

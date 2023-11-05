@@ -44,7 +44,7 @@ public class CommentService {
         Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
 
         /* Get all comments of the post. */
-        List<Comment> commentList = post.getComments();
+        List<Comment> commentList = commentRepository.findCommentsByPost(post);
         List<CommentResponse> responses = new ArrayList<>();
         for (Comment comment : commentList) {
             responses.add(new CommentResponse(comment));
@@ -69,8 +69,8 @@ public class CommentService {
 
         /* Find comment by commentId. */
         Comment comment = commentRepository.findByIdOrThrow(commentId, COMMENT_NOT_FOUND);
-
-        return ApiResponse.success(new CommentResponse(comment));
+        CommentResponse response = new CommentResponse(comment);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -91,16 +91,14 @@ public class CommentService {
         /* Get post info from postId. */
         Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
 
-        /* Create new comment. */
+        /* Create new comment and save db. */
         Comment comment = new Comment(request);
         comment.setMember(member);
         comment.setPost(post);
+        commentRepository.save(comment);
 
-        /* Set bidirectional relation. */
-        comment.getPost().addComment(comment);
-        comment.getMember().addComment(comment);
-
-        return ApiResponse.success(new CommentResponse(comment));
+        CommentResponse response = new CommentResponse(comment);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -120,7 +118,8 @@ public class CommentService {
 
         /* Update comment. */
         authComment.update(request);
-        return ApiResponse.success(new CommentResponse(authComment));
+        CommentResponse response = new CommentResponse(authComment);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -138,11 +137,8 @@ public class CommentService {
         Comment authComment = authCommentAccess(postId, commentId, bearerToken);
 
         /* Delete comment. */
-        authComment.getPost().removeComment(authComment);
-        authComment.getMember().removeComment(authComment);
         commentRepository.deleteById(commentId);
-
-        return ApiResponse.success(commentId);
+        return ApiResponse.success(true);
     }
 
     /**

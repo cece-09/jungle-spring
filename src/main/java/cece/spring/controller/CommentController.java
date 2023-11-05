@@ -3,6 +3,7 @@ package cece.spring.controller;
 import cece.spring.dto.request.CommentRequest;
 import cece.spring.dto.response.ApiResponse;
 import cece.spring.service.CommentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
@@ -10,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-//@RequestMapping("/api")
 public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/api/posts/{postId}/comments")
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable Long postId) {
+
         return commentService.getComments(postId);
     }
 
@@ -32,7 +33,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse> createComment(
             @PathVariable Long postId,
             @RequestHeader(value = "Authorization") String bearerToken,
-            @RequestBody CommentRequest request) {
+            @RequestBody @Valid CommentRequest request) {
         return commentService.createComment(postId, request, bearerToken);
     }
 
@@ -41,7 +42,8 @@ public class CommentController {
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestHeader(value = "Authorization") String bearerToken,
-            @RequestBody CommentRequest request) {
+            @RequestBody @Valid CommentRequest request) {
+
         return commentService.updateComment(postId, commentId, request, bearerToken);
     }
 
@@ -50,6 +52,7 @@ public class CommentController {
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestHeader(value = "Authorization") String bearerToken) {
+
         return commentService.deleteComment(postId, commentId, bearerToken);
     }
 }

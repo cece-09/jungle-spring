@@ -20,13 +20,13 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class AuthProvider {
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String AUTHORIZATION_KEY = "auth";
+    private static final String INVALID_TOKEN = "유효한 토큰이 아닙니다.";
+    private static final String NO_USER_FOUND = "사용자를 찾을 수 없습니다.";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final long TOKEN_TIME = 60 * 60 * 1000L;
 
-
-    @Value("${jwt.secret.key}") // from application.properties
+    /* from application.properties */
+    @Value("${jwt.secret.key}")
     private String secretKey;
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
@@ -54,7 +54,7 @@ public class AuthProvider {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(member.getId().toString())
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
+//                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
                         .setIssuedAt(date)
                         .signWith(key, signatureAlgorithm)
                         .compact();
@@ -107,16 +107,18 @@ public class AuthProvider {
                 .getSubject();
 
         Long id = Long.parseLong(subject);
-        return memberRepository.findByIdOrThrow(id, "사용자를 찾을 수 없습니다.");
+        return memberRepository.findByIdOrThrow(id, NO_USER_FOUND);
     }
 
     /**
-     *
+     * Authenticate and authorize bearer token.
+     * @param bearerToken token with bearer prefix
+     * @return Member object
      */
     public Member auth(String bearerToken) {
         String token = resolveToken(bearerToken);
         if (token == null || !validateToken(token)) {
-            throw new JwtException("유효한 토큰이 아닙니다.");
+            throw new JwtException(INVALID_TOKEN);
         }
 
         return getUserFromToken(token);

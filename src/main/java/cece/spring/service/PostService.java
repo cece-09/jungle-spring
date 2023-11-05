@@ -1,13 +1,13 @@
 package cece.spring.service;
 
 
-import cece.spring.dto.request.PostCreateRequest;
+import cece.spring.dto.request.PostRequest;
 import cece.spring.dto.response.PostListResponse;
 import cece.spring.dto.response.PostResponse;
 import cece.spring.entity.Member;
 import cece.spring.entity.MemberRole;
 import cece.spring.entity.Post;
-import cece.spring.repository.MemberRepository;
+import cece.spring.repository.CommentRepository;
 import cece.spring.repository.PostRepository;
 import cece.spring.dto.response.ApiResponse;
 import cece.spring.utils.AuthProvider;
@@ -22,13 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private final PostRepository postRepository;
     private final AuthProvider authProvider;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     /* Error message strings. */
     private final static String POST_NOT_FOUND = "존재하지 않는 게시글입니다.";
@@ -44,7 +44,7 @@ public class PostService {
      */
     @Transactional
     public ResponseEntity<ApiResponse> createPost(
-            PostCreateRequest request, String bearerToken) {
+            PostRequest request, String bearerToken) {
 
         /* Authenticate member. */
         Member member = authProvider.auth(bearerToken);
@@ -78,8 +78,14 @@ public class PostService {
 
         /* Set response data */
         for (Post post : postList) {
-            response.addData(new PostResponse(post));
+            PostResponse postResponse = new PostResponse(post);
+            /* Get related comments. */
+            commentRepository.findCommentsByPost(post)
+                    .forEach(postResponse::addComment);
+            /* Add to response data. */
+            response.addData(postResponse);
         }
+
         /* Return response list */
         return ApiResponse.success(response);
     }
@@ -95,6 +101,12 @@ public class PostService {
 
         Post post = postRepository.findByIdOrThrow(id, POST_NOT_FOUND);
         PostResponse response = new PostResponse(post);
+
+        /* Get related comments. */
+        commentRepository.findCommentsByPost(post)
+                .forEach(response::addComment);
+
+        /* Return response. */
         return ApiResponse.success(response);
     }
 
@@ -110,13 +122,14 @@ public class PostService {
      */
     @Transactional
     public ResponseEntity<ApiResponse> updatePost(
-            Long postId, PostCreateRequest request, String bearerToken) {
+            Long postId, PostRequest request, String bearerToken) {
 
         Post post = authPostAccess(postId, bearerToken);
 
         /* Update and return response. */
         post.update(request);
-        return ApiResponse.success(post.getId());
+        PostResponse response = new PostResponse(post);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -152,6 +165,7 @@ public class PostService {
         /* Authorization */
         Member author = post.getMember();
 
+        /* If user is neither admin nor author. */
         if (member.getRole() == MemberRole.USER && !member.getId().equals(author.getId())) {
             throw new AccessDeniedException(PERMISSION_ERROR);
         }

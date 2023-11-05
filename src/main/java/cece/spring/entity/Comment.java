@@ -26,6 +26,7 @@ public class Comment extends Timestamped {
     private String content;
 
     public Comment(CommentRequest request) {
+        /* ... */
         this.content = request.getContent();
     }
 

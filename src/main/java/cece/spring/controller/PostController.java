@@ -1,9 +1,10 @@
 package cece.spring.controller;
 
 
-import cece.spring.dto.request.PostCreateRequest;
+import cece.spring.dto.request.PostRequest;
 import cece.spring.dto.response.ApiResponse;
 import cece.spring.service.PostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +17,13 @@ public class PostController {
 
     @GetMapping("/")
     public ModelAndView home() {
+        /* ... */
         return new ModelAndView("index");
     }
 
     @PostMapping("/api/posts")
     public ResponseEntity<ApiResponse> createPost(
-            @RequestBody PostCreateRequest request,
+            @RequestBody @Valid PostRequest request,
             @RequestHeader(name = "Authorization") String token) {
         return postService.createPost(request, token);
     }
@@ -59,7 +61,7 @@ public class PostController {
     public ResponseEntity<ApiResponse> updatePost(
             @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody PostCreateRequest request) {
+            @RequestBody @Valid PostRequest request) {
 
         return postService.updatePost(id, request, token);
     }

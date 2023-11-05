@@ -50,7 +50,7 @@ public class MemberController {
      */
     @PostMapping("/api/login")
     public ResponseEntity<ApiResponse> login(
-            @RequestBody UserLoginRequest request) {
+            @RequestBody @Valid UserLoginRequest request) {
 
         return memberService.login(request);
     }

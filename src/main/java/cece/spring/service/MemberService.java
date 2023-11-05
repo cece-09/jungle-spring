@@ -25,14 +25,12 @@ public class MemberService {
 
     /* Admin authentication token. */
     private static final String ADMIN_TOKEN = "112233";
-    private static final String REGEX_PASSWORD = "(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,15}";
-
-    /* Error message strings. */
-    private static final String INVALID_PASSWORD = "비밀번호는 8자 이상 15자 이하 대/소문자, 숫자, 특수문자를 포함해 입력하세요.";
     private static final String ADMIN_AUTH_ERROR = "관리자 인증에 실패했습니다.";
     private static final String INVALID_USERNAME = "이미 가입된 회원입니다.";
     private static final String USER_NOT_FOUND = "가입된 회원 정보가 없습니다.";
     private static final String PASSWORD_ERROR = "비밀번호가 일치하지 않습니다.";
+    private static final String SIGNUP_SUCCESS = "회원가입이 완료되었습니다.";
+    private static final String LOGIN_SUCCESS = "로그인이 완료되었습니다.";
 
 
     /**
@@ -48,13 +46,9 @@ public class MemberService {
         /* Extract user info and encrypt. */
         String username = request.getUsername();
 
-        /* Validate password first. */
+        /* Encode password first. */
         String password = request.getPassword();
-        if (!password.matches(REGEX_PASSWORD)) {
-            return ApiResponse.error(INVALID_PASSWORD);
-        }
-
-        String encodedPassword = encoder.encode(request.getPassword());
+        String encodedPassword = encoder.encode(password);
         String requestedRole = request.getRole();
 
         /* Validate admin token
@@ -81,10 +75,11 @@ public class MemberService {
         }
 
         /* Save to database. */
-        Member member = memberRepository.save(new Member(username, encodedPassword, role));
+        Member member = memberRepository.save(
+                new Member(username, encodedPassword, role));
 
         /* Build Response and return. */
-        return ApiResponse.success(member.getId());
+        return ApiResponse.success(SIGNUP_SUCCESS);
     }
 
     /**
@@ -114,6 +109,6 @@ public class MemberService {
         /* Create JWT token and return. */
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authProvider.createToken(member));
-        return ApiResponse.success(member.getId(), headers);
+        return ApiResponse.success(LOGIN_SUCCESS, headers);
     }
 }

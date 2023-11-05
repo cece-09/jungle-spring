@@ -6,8 +6,12 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.Objects;
 
 @ControllerAdvice
 public class ExceptionController {
@@ -19,6 +23,14 @@ public class ExceptionController {
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .toList().toString();
 
+        return ApiResponse.error(errorMessage);
+    }
+
+    /* Handle MethodArgumentNotValidException. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        BindingResult result = e.getBindingResult();
+        String errorMessage = Objects.requireNonNull(Objects.requireNonNull(result.getFieldError()).getDefaultMessage());
         return ApiResponse.error(errorMessage);
     }
 

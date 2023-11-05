@@ -1,13 +1,10 @@
 package cece.spring.entity;
 
 
-import cece.spring.dto.request.PostCreateRequest;
+import cece.spring.dto.request.PostRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Entity
@@ -27,33 +24,18 @@ public class Post extends Timestamped{
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
-    private List<Comment> comments = new ArrayList<>();
-
-    public Post(Long id, String title, String username, String contents) {
-        this.title = title;
-        this.content = contents;
-    }
-
-    public Post(PostCreateRequest request) {
+    public Post(PostRequest request) {
         this.title = request.getTitle();
         this.content = request.getContent();
     }
 
-    public void update(PostCreateRequest request) {
+    public void update(PostRequest request) {
         this.title = request.getTitle();
         this.content = request.getContent();
     }
 
     public void setMember(Member member) {
+        /* ... */
         this.member = member;
-        member.addPost(this);
-    }
-
-    public void addComment(Comment comment) {
-        this.comments.add(comment);
-    }
-    public void removeComment(Comment comment) {
-        this.comments.remove(comment);
     }
 }

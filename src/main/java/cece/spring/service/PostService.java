@@ -4,6 +4,7 @@ package cece.spring.service;
 import cece.spring.dto.request.PostRequest;
 import cece.spring.dto.response.PostListResponse;
 import cece.spring.dto.response.PostResponse;
+import cece.spring.entity.Comment;
 import cece.spring.entity.Member;
 import cece.spring.entity.MemberRole;
 import cece.spring.entity.Post;
@@ -33,7 +34,12 @@ public class PostService {
     /* Error message strings. */
     private final static String POST_NOT_FOUND = "존재하지 않는 게시글입니다.";
     private final static String PERMISSION_ERROR = "작성한 게시글만 수정/삭제할 수 있습니다.";
+    private final static String POST_LIMIT_ERROR = "한 페이지당 최대 100개의 게시글을 노출합니다.";
 
+    /* Max number of posts in one page. */
+    private final static int GET_POSTS_LIMIT = 100;
+    private final static int DEFAULT_PAGE = 1;
+    private final static int DEFAULT_SIZE = 10;
 
     /**
      * Create a new post with given token
@@ -68,20 +74,24 @@ public class PostService {
      */
     @Transactional(readOnly = true)
     public ResponseEntity<BaseApiResponse> getPosts(int page, int size) {
+        /* If size exceeds limit, return error. */
+        if (size > GET_POSTS_LIMIT) {
+            throw new IllegalArgumentException(POST_LIMIT_ERROR);
+        }
+
         /* Get page data from request params. */
         long totalCount = postRepository.count();
         long totalPage = ((totalCount - 1) / size) + 1;
 
         PostListResponse response = new PostListResponse(page, size, totalPage, totalCount);
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        List<Post> postList = postRepository.findAll(pageable).getContent();
+        List<Post> postList = pagedPosts(page - 1, size);
 
         /* Set response data */
         for (Post post : postList) {
             PostResponse postResponse = new PostResponse(post);
-
             /* Get related comments. */
-            post.getComments().forEach(postResponse::addComment);
+            List<Comment> commentList = pagedCommentsByPost(post.getId(), 0, 5);
+            commentList.forEach(postResponse::addComment);
 
             /* Add to response data. */
             response.addData(postResponse);
@@ -95,16 +105,18 @@ public class PostService {
      * Get post by post id.
      *
      * @param id post id
+     * @param page page number of comment
+     * @param size page size of comment
      * @return ResponseEntity of post
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<BaseApiResponse> getPost(Long id) {
-
+    public ResponseEntity<BaseApiResponse> getPost(Long id, int page, int size) {
         Post post = postRepository.findByIdOrThrow(id, POST_NOT_FOUND);
         PostResponse response = new PostResponse(post);
 
         /* Get related comments. */
-        post.getComments().forEach(response::addComment);
+        List<Comment> commentList = pagedCommentsByPost(post.getId(), page-1, size);
+        commentList.forEach(response::addComment);
 
         /* Return response. */
         return BaseApiResponse.success(response);
@@ -174,5 +186,30 @@ public class PostService {
 
         /* If no error found. */
         return post;
+    }
+
+    /**
+     * Returns a page of comments.
+     *
+     * @param postId post id
+     * @param pageNumber page number
+     * @param pageSize page size
+     * @return List of comments in one page.
+     */
+    private List<Comment> pagedCommentsByPost(Long postId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return commentRepository.findByPostIdOrderByCreatedAt(postId, pageable).getContent();
+    }
+
+    /**
+     * Returns a page of posts.
+     *
+     * @param pageNumber page number
+     * @param pageSize page size
+     * @return List of posts in one page.
+     */
+    private List<Post> pagedPosts(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
+        return postRepository.findAll(pageable).getContent();
     }
 }

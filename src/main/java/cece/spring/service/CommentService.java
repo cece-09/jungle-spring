@@ -32,28 +32,6 @@ public class CommentService {
     private final static String COMMENT_NOT_FOUND = "댓글을 찾을 수 없습니다.";
     private final static String PERMISSION_ERROR = "작성한 댓글만 수정/삭제할 수 있습니다.";
 
-
-    /**
-     * Get all comments of a certain post.
-     *
-     * @param postId post id
-     * @return ResponseEntity of comment list
-     */
-
-    @Transactional(readOnly = true)
-    public ResponseEntity<BaseApiResponse> getComments(Long postId) {
-        /* Find post by postId. */
-        Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
-
-        /* Get all comments of the post. */
-        List<CommentResponse> responses = new ArrayList<>();
-        for (Comment comment : post.getComments()) {
-            responses.add(new CommentResponse(comment));
-        }
-
-        return BaseApiResponse.success(responses);
-    }
-
     /**
      * Get a certain comment.
      *

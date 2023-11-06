@@ -23,8 +23,8 @@ public class PostController {
 
     @GetMapping("/api/posts")
     public ResponseEntity<BaseApiResponse> getPosts(
-            @RequestParam(value = "page", required = true) int page,
-            @RequestParam(value = "size", required = true) int size) {
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
 
         return postService.getPosts(page, size);
     }
@@ -37,9 +37,11 @@ public class PostController {
      */
     @GetMapping("/api/posts/{id}")
     public ResponseEntity<BaseApiResponse> getPost(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
 
-        return postService.getPost(id);
+        return postService.getPost(id, page, size);
     }
 
     @PostMapping("/api/posts")
@@ -60,7 +62,7 @@ public class PostController {
     @PutMapping("/api/posts/{id}")
     public ResponseEntity<BaseApiResponse> updatePost(
             @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "Authorization") String token,
             @RequestBody @Valid PostRequest request) {
 
         return postService.updatePost(id, request, token);
@@ -76,7 +78,8 @@ public class PostController {
     @DeleteMapping("/api/posts/{id}")
     public ResponseEntity<BaseApiResponse> deletePost(
             @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+            @RequestHeader(value = "Authorization") String token) {
+
         return postService.deletePost(id, token);
     }
 }

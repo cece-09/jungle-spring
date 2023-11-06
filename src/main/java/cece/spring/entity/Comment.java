@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
+@Entity(name = "comment")
 @NoArgsConstructor
 public class Comment extends Timestamped {
     @Id

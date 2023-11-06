@@ -54,4 +54,11 @@ public class ExceptionController {
         String errorMessage = e.getMessage();
         return BaseApiResponse.error(errorMessage);
     }
+
+    /* Handle IllegalArgumentException. */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<BaseApiResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        String errorMessage = e.getMessage();
+        return BaseApiResponse.error(errorMessage);
+    }
 }

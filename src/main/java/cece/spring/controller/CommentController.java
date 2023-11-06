@@ -13,13 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
-    @GetMapping("/api/posts/{postId}/comments")
-    public ResponseEntity<BaseApiResponse> getComments(
-            @PathVariable Long postId) {
-
-        return commentService.getComments(postId);
-    }
-
     // TODO: 정말 필요한지 생각해 볼 것
     @GetMapping("/api/comments/{commentId}")
     public ResponseEntity<BaseApiResponse> getComment(

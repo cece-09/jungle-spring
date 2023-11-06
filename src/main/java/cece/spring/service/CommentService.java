@@ -1,15 +1,15 @@
 package cece.spring.service;
 
 import cece.spring.dto.request.CommentRequest;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import cece.spring.dto.response.CommentResponse;
 import cece.spring.entity.Comment;
 import cece.spring.entity.Member;
+import cece.spring.entity.MemberRole;
 import cece.spring.entity.Post;
 import cece.spring.repository.CommentRepository;
 import cece.spring.repository.PostRepository;
 import cece.spring.utils.AuthProvider;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +41,7 @@ public class CommentService {
      */
 
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse> getComments(Long postId) {
+    public ResponseEntity<BaseApiResponse> getComments(Long postId) {
         /* Find post by postId. */
         Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
 
@@ -52,7 +51,7 @@ public class CommentService {
             responses.add(new CommentResponse(comment));
         }
 
-        return ApiResponse.success(responses);
+        return BaseApiResponse.success(responses);
     }
 
     /**
@@ -63,7 +62,7 @@ public class CommentService {
      * @return ResponseEntity of comment object
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse> getComment(
+    public ResponseEntity<BaseApiResponse> getComment(
             Long postId, Long commentId) {
 
         /* Find post by postId to
@@ -71,9 +70,22 @@ public class CommentService {
         checkValidPost(postId);
 
         /* Find comment by commentId. */
+        return getComment(commentId);
+    }
+
+    /**
+     * Get a certain comment.
+     *
+     * @param commentId comment id
+     * @return ResponseEntity of comment object
+     */
+    @Transactional(readOnly = true)
+    public ResponseEntity<BaseApiResponse> getComment(Long commentId) {
+
+        /* Find comment by commentId. */
         Comment comment = commentRepository.findByIdOrThrow(commentId, COMMENT_NOT_FOUND);
         CommentResponse response = new CommentResponse(comment);
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -85,7 +97,7 @@ public class CommentService {
      * @return ResponseEntity of comment object
      */
     @Transactional
-    public ResponseEntity<ApiResponse> createComment(
+    public ResponseEntity<BaseApiResponse> createComment(
             Long postId, CommentRequest request, String bearerToken) {
 
         /* Validate token first.
@@ -102,7 +114,7 @@ public class CommentService {
         commentRepository.save(comment);
 
         CommentResponse response = new CommentResponse(comment);
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -115,7 +127,7 @@ public class CommentService {
      * @return ResponseEntity of comment id
      */
     @Transactional
-    public ResponseEntity<ApiResponse> updateComment(
+    public ResponseEntity<BaseApiResponse> updateComment(
             Long postId, Long commentId, CommentRequest request, String bearerToken) {
 
         /* Get authorized comment access. */
@@ -124,7 +136,7 @@ public class CommentService {
         /* Update comment. */
         authComment.update(request);
         CommentResponse response = new CommentResponse(authComment);
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -136,7 +148,7 @@ public class CommentService {
      * @return ResponseEntity of comment id
      */
     @Transactional
-    public ResponseEntity<ApiResponse> deleteComment(
+    public ResponseEntity<BaseApiResponse> deleteComment(
             Long postId, Long commentId, String bearerToken) {
 
         /* Get authorized comment access. */
@@ -148,7 +160,7 @@ public class CommentService {
 
         /* Delete comment. */
         commentRepository.deleteById(authComment.getId());
-        return ApiResponse.success(true);
+        return BaseApiResponse.success(true);
     }
 
     /**
@@ -174,7 +186,7 @@ public class CommentService {
 
         /* Authorize user. */
         Member author = comment.getMember();
-        if (!member.getId().equals(author.getId())) {
+        if (member.getRole() == MemberRole.USER && !member.getId().equals(author.getId())) {
             throw new AccessDeniedException(PERMISSION_ERROR);
         }
 

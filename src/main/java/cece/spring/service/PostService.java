@@ -9,7 +9,7 @@ import cece.spring.entity.MemberRole;
 import cece.spring.entity.Post;
 import cece.spring.repository.CommentRepository;
 import cece.spring.repository.PostRepository;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import cece.spring.utils.AuthProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +43,7 @@ public class PostService {
      * @return save post in repository and return response
      */
     @Transactional
-    public ResponseEntity<ApiResponse> createPost(
+    public ResponseEntity<BaseApiResponse> createPost(
             PostRequest request, String bearerToken) {
 
         /* Authenticate member. */
@@ -56,7 +56,7 @@ public class PostService {
 
         /* Create a new post response */
         PostResponse response = new PostResponse(post);
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -67,7 +67,7 @@ public class PostService {
      * @return ResponseEntity of GetPostDto ApiResponse
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse> getPosts(int page, int size) {
+    public ResponseEntity<BaseApiResponse> getPosts(int page, int size) {
         /* Get page data from request params. */
         long totalCount = postRepository.count();
         long totalPage = ((totalCount - 1) / size) + 1;
@@ -88,7 +88,7 @@ public class PostService {
         }
 
         /* Return response list */
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -98,7 +98,7 @@ public class PostService {
      * @return ResponseEntity of post
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse> getPost(Long id) {
+    public ResponseEntity<BaseApiResponse> getPost(Long id) {
 
         Post post = postRepository.findByIdOrThrow(id, POST_NOT_FOUND);
         PostResponse response = new PostResponse(post);
@@ -107,7 +107,7 @@ public class PostService {
         post.getComments().forEach(response::addComment);
 
         /* Return response. */
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -121,7 +121,7 @@ public class PostService {
      * @throws AuthenticationException exp
      */
     @Transactional
-    public ResponseEntity<ApiResponse> updatePost(
+    public ResponseEntity<BaseApiResponse> updatePost(
             Long postId, PostRequest request, String bearerToken) {
 
         Post post = authPostAccess(postId, bearerToken);
@@ -129,7 +129,7 @@ public class PostService {
         /* Update and return response. */
         post.update(request);
         PostResponse response = new PostResponse(post);
-        return ApiResponse.success(response);
+        return BaseApiResponse.success(response);
     }
 
     /**
@@ -140,7 +140,7 @@ public class PostService {
      * @return ResponseEntity of post id
      */
     @Transactional
-    public ResponseEntity<ApiResponse> deletePost(Long postId, String bearerToken) {
+    public ResponseEntity<BaseApiResponse> deletePost(Long postId, String bearerToken) {
 
         Post post = authPostAccess(postId, bearerToken);
 
@@ -148,7 +148,7 @@ public class PostService {
         postRepository.deleteById(post.getId());
 
         /* Return response. */
-        return ApiResponse.success(true);
+        return BaseApiResponse.success(true);
     }
 
 

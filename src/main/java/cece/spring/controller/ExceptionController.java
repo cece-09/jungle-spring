@@ -1,6 +1,6 @@
 package cece.spring.controller;
 
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -17,41 +17,41 @@ import java.util.Objects;
 public class ExceptionController {
     /* Handle ConstraintViolationException. */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse> handleConstraintViolationException(ConstraintViolationException e) {
+    public ResponseEntity<BaseApiResponse> handleConstraintViolationException(ConstraintViolationException e) {
         /* Parse error message. */
         String errorMessage = e.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .toList().toString();
 
-        return ApiResponse.error(errorMessage);
+        return BaseApiResponse.error(errorMessage);
     }
 
     /* Handle MethodArgumentNotValidException. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<BaseApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         BindingResult result = e.getBindingResult();
         String errorMessage = Objects.requireNonNull(Objects.requireNonNull(result.getFieldError()).getDefaultMessage());
-        return ApiResponse.error(errorMessage);
+        return BaseApiResponse.error(errorMessage);
     }
 
     /* Handle EntityNotFoundException. */
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleEntityNotFoundException(EntityNotFoundException e) {
+    public ResponseEntity<BaseApiResponse> handleEntityNotFoundException(EntityNotFoundException e) {
         String errorMessage = e.getMessage();
-        return ApiResponse.error(errorMessage);
+        return BaseApiResponse.error(errorMessage);
     }
 
     /* Handle AccessDeniedException. */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse> handleAccessDeniedException(AccessDeniedException e) {
+    public ResponseEntity<BaseApiResponse> handleAccessDeniedException(AccessDeniedException e) {
         String errorMessage = e.getMessage();
-        return ApiResponse.error(errorMessage);
+        return BaseApiResponse.error(errorMessage);
     }
 
     /* Handle JwtException. */
     @ExceptionHandler(JwtException.class)
-    public ResponseEntity<ApiResponse> handleJwtException(JwtException e) {
+    public ResponseEntity<BaseApiResponse> handleJwtException(JwtException e) {
         String errorMessage = e.getMessage();
-        return ApiResponse.error(errorMessage);
+        return BaseApiResponse.error(errorMessage);
     }
 }

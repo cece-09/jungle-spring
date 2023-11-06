@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(LogoutConfigurer::permitAll)
-                // login page로 리다이렉트 되지 않도록 추가
+                // login page 리다이렉트 되지 않도록 추가
                 // 대신 401 unauthorized error 발생
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))

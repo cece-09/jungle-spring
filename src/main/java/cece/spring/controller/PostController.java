@@ -2,7 +2,7 @@ package cece.spring.controller;
 
 
 import cece.spring.dto.request.PostRequest;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import cece.spring.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +21,8 @@ public class PostController {
         return new ModelAndView("index");
     }
 
-    @PostMapping("/api/posts")
-    public ResponseEntity<ApiResponse> createPost(
-            @RequestBody @Valid PostRequest request,
-            @RequestHeader(name = "Authorization") String token) {
-        return postService.createPost(request, token);
-    }
-
     @GetMapping("/api/posts")
-    public ResponseEntity<ApiResponse> getPosts(
+    public ResponseEntity<BaseApiResponse> getPosts(
             @RequestParam(value = "page", required = true) int page,
             @RequestParam(value = "size", required = true) int size) {
 
@@ -43,10 +36,17 @@ public class PostController {
      * @return ResponseEntity of post
      */
     @GetMapping("/api/posts/{id}")
-    public ResponseEntity<ApiResponse> getPost(
+    public ResponseEntity<BaseApiResponse> getPost(
             @PathVariable Long id) {
 
         return postService.getPost(id);
+    }
+
+    @PostMapping("/api/posts")
+    public ResponseEntity<BaseApiResponse> createPost(
+            @RequestBody @Valid PostRequest request,
+            @RequestHeader(name = "Authorization") String token) {
+        return postService.createPost(request, token);
     }
 
     /**
@@ -58,7 +58,7 @@ public class PostController {
      * @return ResponseEntity of updated post id
      */
     @PutMapping("/api/posts/{id}")
-    public ResponseEntity<ApiResponse> updatePost(
+    public ResponseEntity<BaseApiResponse> updatePost(
             @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestBody @Valid PostRequest request) {
@@ -74,7 +74,7 @@ public class PostController {
      * @return ResponseEntity of deleted post id
      */
     @DeleteMapping("/api/posts/{id}")
-    public ResponseEntity<ApiResponse> deletePost(
+    public ResponseEntity<BaseApiResponse> deletePost(
             @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {
         return postService.deletePost(id, token);

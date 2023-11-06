@@ -1,12 +1,11 @@
 package cece.spring.controller;
 
 import cece.spring.dto.request.CommentRequest;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import cece.spring.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,14 +14,22 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/api/posts/{postId}/comments")
-    public ResponseEntity<ApiResponse> getComments(
+    public ResponseEntity<BaseApiResponse> getComments(
             @PathVariable Long postId) {
 
         return commentService.getComments(postId);
     }
 
+    // TODO: 정말 필요한지 생각해 볼 것
+    @GetMapping("/api/comments/{commentId}")
+    public ResponseEntity<BaseApiResponse> getComment(
+            @PathVariable Long commentId) {
+
+        return commentService.getComment(commentId);
+    }
+
     @GetMapping("/api/posts/{postId}/comments/{commentId}")
-    public ResponseEntity<ApiResponse> getComment(
+    public ResponseEntity<BaseApiResponse> getComment(
             @PathVariable Long postId,
             @PathVariable Long commentId) {
 
@@ -30,15 +37,16 @@ public class CommentController {
     }
 
     @PostMapping("/api/posts/{postId}/comments")
-    public ResponseEntity<ApiResponse> createComment(
+    public ResponseEntity<BaseApiResponse> createComment(
             @PathVariable Long postId,
             @RequestHeader(value = "Authorization") String bearerToken,
             @RequestBody @Valid CommentRequest request) {
+
         return commentService.createComment(postId, request, bearerToken);
     }
 
     @PutMapping("/api/posts/{postId}/comments/{commentId}")
-    public ResponseEntity<ApiResponse> updateComment(
+    public ResponseEntity<BaseApiResponse> updateComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestHeader(value = "Authorization") String bearerToken,
@@ -48,7 +56,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/api/posts/{postId}/comments/{commentId}")
-    public ResponseEntity<ApiResponse> deleteComment(
+    public ResponseEntity<BaseApiResponse> deleteComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestHeader(value = "Authorization") String bearerToken) {

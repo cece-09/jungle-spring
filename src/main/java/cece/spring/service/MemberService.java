@@ -6,7 +6,7 @@ import cece.spring.entity.Member;
 import cece.spring.entity.MemberRole;
 import cece.spring.utils.AuthProvider;
 import cece.spring.repository.MemberRepository;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -26,12 +26,11 @@ public class MemberService {
 
     /* Admin authentication token. */
     @Value("${jwt.admin.key}")
-    private static String ADMIN_TOKEN;
+    private String adminToken;
     private static final String ADMIN_AUTH_ERROR = "관리자 인증에 실패했습니다.";
     private static final String INVALID_USERNAME = "이미 가입된 회원입니다.";
     private static final String USER_NOT_FOUND = "가입된 회원 정보가 없습니다.";
     private static final String PASSWORD_ERROR = "비밀번호가 일치하지 않습니다.";
-    private static final String SIGNUP_SUCCESS = "회원가입이 완료되었습니다.";
     private static final String LOGIN_SUCCESS = "로그인이 완료되었습니다.";
 
 
@@ -42,8 +41,8 @@ public class MemberService {
      * @return member info
      */
     @Transactional
-    public ResponseEntity<ApiResponse> signup(
-            Optional<String> isToken,
+    public ResponseEntity<BaseApiResponse> signup(
+            String token,
             UserSignupRequest request) {
         /* Extract user info and encrypt. */
         String username = request.getUsername();
@@ -60,20 +59,20 @@ public class MemberService {
             role = MemberRole.ADMIN;
 
             /* If token is empty. */
-            if (isToken.isEmpty()) {
-                return ApiResponse.error(ADMIN_AUTH_ERROR);
+            if (token == null) {
+                return BaseApiResponse.error(ADMIN_AUTH_ERROR);
             }
 
             /* If token is not valid. */
-            if (!isToken.get().equals(ADMIN_TOKEN)) {
-                return ApiResponse.error(ADMIN_AUTH_ERROR);
+            if (!token.equals(adminToken)) {
+                return BaseApiResponse.error(ADMIN_AUTH_ERROR);
             }
         }
 
         /* Handle non-unique username. */
         Optional<Member> found = memberRepository.findMemberByName(username);
         if (found.isPresent()) {
-            return ApiResponse.error(INVALID_USERNAME);
+            return BaseApiResponse.error(INVALID_USERNAME);
         }
 
         /* Save to database. */
@@ -81,7 +80,7 @@ public class MemberService {
                 new Member(username, encodedPassword, role));
 
         /* Build Response and return. */
-        return ApiResponse.success(SIGNUP_SUCCESS);
+        return BaseApiResponse.success(member.getId());
     }
 
     /**
@@ -91,7 +90,7 @@ public class MemberService {
      * @return Response with JWT token
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse> login(UserLoginRequest request) {
+    public ResponseEntity<BaseApiResponse> login(UserLoginRequest request) {
         /* Extract user info from request. */
         String username = request.getUsername();
         String password = request.getPassword();
@@ -99,18 +98,18 @@ public class MemberService {
         /* Find user by name in db. */
         Optional<Member> isMember = memberRepository.findMemberByName(username);
         if (isMember.isEmpty()) {
-            return ApiResponse.error(USER_NOT_FOUND);
+            return BaseApiResponse.error(USER_NOT_FOUND);
         }
 
         /* Validate password. */
         Member member = isMember.get();
         if (!encoder.matches(password, member.getPassword())) {
-            return ApiResponse.error(PASSWORD_ERROR);
+            return BaseApiResponse.error(PASSWORD_ERROR);
         }
 
         /* Create JWT token and return. */
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authProvider.createToken(member));
-        return ApiResponse.success(LOGIN_SUCCESS, headers);
+        return BaseApiResponse.success(LOGIN_SUCCESS, headers);
     }
 }

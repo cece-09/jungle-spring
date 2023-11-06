@@ -30,7 +30,7 @@ public class Post extends Timestamped{
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "post_id")
-    @OrderBy("createdAt")
+    @OrderBy("createdAt DESC")
     private final List<Comment> comments = new ArrayList<>();
 
     public Post(PostRequest request) {

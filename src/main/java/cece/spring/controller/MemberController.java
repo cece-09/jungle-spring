@@ -2,7 +2,7 @@ package cece.spring.controller;
 
 import cece.spring.dto.request.UserLoginRequest;
 import cece.spring.dto.request.UserSignupRequest;
-import cece.spring.dto.response.ApiResponse;
+import cece.spring.dto.response.BaseApiResponse;
 import cece.spring.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,11 +36,11 @@ public class MemberController {
      * @return ResponseEntity
      */
     @PostMapping("/api/signup")
-    public ResponseEntity<ApiResponse> signup(
+    public ResponseEntity<BaseApiResponse> signup(
             @RequestHeader(name = "Authorization", required = false) String token,
             @RequestBody @Valid UserSignupRequest request) {
 
-        return memberService.signup(Optional.ofNullable(token), request);
+        return memberService.signup(token, request);
     }
 
     /**
@@ -49,7 +49,7 @@ public class MemberController {
      * @return ResponseEntity with JWT token.
      */
     @PostMapping("/api/login")
-    public ResponseEntity<ApiResponse> login(
+    public ResponseEntity<BaseApiResponse> login(
             @RequestBody @Valid UserLoginRequest request) {
 
         return memberService.login(request);

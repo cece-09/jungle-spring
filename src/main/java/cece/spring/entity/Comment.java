@@ -14,10 +14,6 @@ public class Comment extends Timestamped {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "post_id")
-    private Post post;
-
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
@@ -34,10 +30,8 @@ public class Comment extends Timestamped {
         /* ... */
         this.content = request.getContent();
     }
-    public void setPost(Post post) {
-        /* ... */
-        this.post = post;
-    }
+
+
     public void setMember(Member member) {
         /* ... */
         this.member = member;

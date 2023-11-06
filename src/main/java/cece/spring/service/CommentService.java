@@ -7,16 +7,18 @@ import cece.spring.entity.Comment;
 import cece.spring.entity.Member;
 import cece.spring.entity.Post;
 import cece.spring.repository.CommentRepository;
-import cece.spring.repository.MemberRepository;
 import cece.spring.repository.PostRepository;
 import cece.spring.utils.AuthProvider;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,14 +41,14 @@ public class CommentService {
      * @return ResponseEntity of comment list
      */
 
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse> getComments(Long postId) {
         /* Find post by postId. */
         Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
 
         /* Get all comments of the post. */
-        List<Comment> commentList = commentRepository.findByPostOrderByCreatedAtDesc(post);
         List<CommentResponse> responses = new ArrayList<>();
-        for (Comment comment : commentList) {
+        for (Comment comment : post.getComments()) {
             responses.add(new CommentResponse(comment));
         }
 
@@ -60,6 +62,7 @@ public class CommentService {
      * @param commentId comment id
      * @return ResponseEntity of comment object
      */
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse> getComment(
             Long postId, Long commentId) {
 
@@ -81,6 +84,7 @@ public class CommentService {
      * @param bearerToken JWT token
      * @return ResponseEntity of comment object
      */
+    @Transactional
     public ResponseEntity<ApiResponse> createComment(
             Long postId, CommentRequest request, String bearerToken) {
 
@@ -93,8 +97,8 @@ public class CommentService {
 
         /* Create new comment and save db. */
         Comment comment = new Comment(request);
+        post.addComment(comment);
         comment.setMember(member);
-        comment.setPost(post);
         commentRepository.save(comment);
 
         CommentResponse response = new CommentResponse(comment);
@@ -110,6 +114,7 @@ public class CommentService {
      * @param bearerToken JWT token
      * @return ResponseEntity of comment id
      */
+    @Transactional
     public ResponseEntity<ApiResponse> updateComment(
             Long postId, Long commentId, CommentRequest request, String bearerToken) {
 
@@ -130,14 +135,19 @@ public class CommentService {
      * @param bearerToken JWT token
      * @return ResponseEntity of comment id
      */
+    @Transactional
     public ResponseEntity<ApiResponse> deleteComment(
             Long postId, Long commentId, String bearerToken) {
 
         /* Get authorized comment access. */
         Comment authComment = authCommentAccess(postId, commentId, bearerToken);
 
+        /* Remove from post's comments list. */
+        Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
+        post.removeComment(authComment);
+
         /* Delete comment. */
-        commentRepository.deleteById(commentId);
+        commentRepository.deleteById(authComment.getId());
         return ApiResponse.success(true);
     }
 

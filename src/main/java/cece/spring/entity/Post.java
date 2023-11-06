@@ -6,12 +6,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor
 public class Post extends Timestamped{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "post_id")
     private Long id;
 
     @Column(nullable = false)
@@ -23,6 +27,11 @@ public class Post extends Timestamped{
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @OneToMany(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "post_id")
+    @OrderBy("createdAt")
+    private final List<Comment> comments = new ArrayList<>();
 
     public Post(PostRequest request) {
         this.title = request.getTitle();
@@ -38,4 +47,16 @@ public class Post extends Timestamped{
         /* ... */
         this.member = member;
     }
+
+    public void addComment(Comment comment) {
+        /* ... */
+        this.comments.add(comment);
+    }
+
+    public void removeComment(Comment comment) {
+        /* ... */
+        this.comments.remove(comment);
+    }
 }
+
+

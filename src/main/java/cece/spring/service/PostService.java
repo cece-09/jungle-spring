@@ -79,9 +79,10 @@ public class PostService {
         /* Set response data */
         for (Post post : postList) {
             PostResponse postResponse = new PostResponse(post);
+
             /* Get related comments. */
-            commentRepository.findByPostOrderByCreatedAtDesc(post)
-                    .forEach(postResponse::addComment);
+            post.getComments().forEach(postResponse::addComment);
+
             /* Add to response data. */
             response.addData(postResponse);
         }
@@ -103,8 +104,7 @@ public class PostService {
         PostResponse response = new PostResponse(post);
 
         /* Get related comments. */
-        commentRepository.findByPostOrderByCreatedAtDesc(post)
-                .forEach(response::addComment);
+        post.getComments().forEach(response::addComment);
 
         /* Return response. */
         return ApiResponse.success(response);
@@ -147,9 +147,7 @@ public class PostService {
         /* Delete and return response. */
         postRepository.deleteById(post.getId());
 
-        /* Remove all related comments. */
-        // ???
-
+        /* Return response. */
         return ApiResponse.success(true);
     }
 

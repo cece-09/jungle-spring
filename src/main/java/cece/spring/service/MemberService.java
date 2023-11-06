@@ -90,7 +90,7 @@ public class MemberService {
      * @param request username, password
      * @return Response with JWT token
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse> login(UserLoginRequest request) {
         /* Extract user info from request. */
         String username = request.getUsername();

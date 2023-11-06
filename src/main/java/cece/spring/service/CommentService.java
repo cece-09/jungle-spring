@@ -44,7 +44,7 @@ public class CommentService {
         Post post = postRepository.findByIdOrThrow(postId, POST_NOT_FOUND);
 
         /* Get all comments of the post. */
-        List<Comment> commentList = commentRepository.findCommentsByPost(post);
+        List<Comment> commentList = commentRepository.findByPostOrderByCreatedAtDesc(post);
         List<CommentResponse> responses = new ArrayList<>();
         for (Comment comment : commentList) {
             responses.add(new CommentResponse(comment));

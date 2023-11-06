@@ -8,6 +8,7 @@ import cece.spring.utils.AuthProvider;
 import cece.spring.repository.MemberRepository;
 import cece.spring.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,7 +25,8 @@ public class MemberService {
     private final AuthProvider authProvider;
 
     /* Admin authentication token. */
-    private static final String ADMIN_TOKEN = "112233";
+    @Value("${jwt.admin.key}")
+    private static String ADMIN_TOKEN;
     private static final String ADMIN_AUTH_ERROR = "관리자 인증에 실패했습니다.";
     private static final String INVALID_USERNAME = "이미 가입된 회원입니다.";
     private static final String USER_NOT_FOUND = "가입된 회원 정보가 없습니다.";
